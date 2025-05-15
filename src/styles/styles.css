@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #DBFFCB; 
+  color: #333;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #d81b60;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+:root {
+  --transition-duration: 0.3s;
+}
+
+::view-transition-old(root) {
+  animation: fade-out var(--transition-duration) ease-in-out;
+}
+
+::view-transition-new(root) {
+  animation: fade-in var(--transition-duration) ease-in-out;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  #camera-stream,
+  #photo-preview,
+  #map-add,
+  [id^="map-"] {
+    height: 12rem !important;
+  }
+}
