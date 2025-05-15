@@ -4,11 +4,13 @@ import App from '../scripts/pages/app.js';
 import CONFIG from '../scripts/config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const app = new App({
-    content: document.querySelector('#main-content'),
-    drawerButton: document.querySelector('#drawer-button'),
-    navigationDrawer: document.querySelector('#navigation-drawer'),
-  });
+  // const app = new App({
+  //   content: document.querySelector('#main-content'),
+  //   drawerButton: document.querySelector('#drawer-button'),
+  //   navigationDrawer: document.querySelector('#navigation-drawer'),
+  // });
+  const app = new App();
+
 
   const authLink = document.getElementById('auth-link');
   if (!authLink) {
