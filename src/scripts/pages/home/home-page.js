@@ -139,13 +139,13 @@ export default class HomePage {
       });
 
       const defaultIcon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconUrl: '../../../../assets/marker-icon.png',
+         shadowUrl: '../../../../assets/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
-      });
+      });         
 
       const marker = L.marker([lat, lon], { icon: defaultIcon }).addTo(map);
       marker.bindPopup(`<b>${story.name}</b><br>${story.description.substring(0, 50)}...`).openPopup();

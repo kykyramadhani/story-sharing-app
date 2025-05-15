@@ -35,8 +35,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: '/assets/images/icon-192x192.png',
-    badge: '/assets/images/icon-192x192.png',
+    icon: '/assets/icon-192x192.png',
+    badge: '/assets/icon-192x192.png',
     vibrate: [200, 100, 200],
     data: {
       dateOfArrival: Date.now(),
@@ -46,7 +46,7 @@ self.addEventListener('push', (event) => {
       {
         action: 'open_app',
         title: 'Buka Aplikasi',
-        icon: '/assets/images/icon-192x192.png',
+        icon: '/assets/icon-192x192.png',
       },
     ],
   };

@@ -90,8 +90,8 @@ export default class AddStoryPage {
     });
 
     const defaultIcon = L.icon({
-      iconUrl: '../../../../assets/images/marker-icon.png',
-      shadowUrl: '../../../../assets/images/marker-shadow.png',
+      iconUrl: '../../../../assets/marker-icon.png',
+      shadowUrl: '../../../../assets/marker-shadow.png',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
