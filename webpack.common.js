@@ -38,7 +38,6 @@ module.exports = {
     new WorkboxPlugin.InjectManifest({
       swSrc: './src/sw.js', 
       swDest: 'sw.js', 
-      exclude: [/\.map$/, /manifest\.json$/], // Jangan precache file tertentu
     }),
   ],
 };
