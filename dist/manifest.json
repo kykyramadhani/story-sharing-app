@@ -1,0 +1,49 @@
+{
+    "name": "Story Sharing App",
+    "short_name": "StoryApp",
+    "description": "A platform to share stories with photos and locations",
+    "start_url": "/#/home",
+    "display": "standalone",
+    "background_color": "#DBFFCB",
+    "theme_color": "#F06292",
+    "icons": [
+      {
+        "src": "/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "shortcuts": [
+      {
+        "name": "Add New Story",
+        "url": "/#/add-story",
+        "description": "Create a new story with photo and location",
+        "icons": [
+          {
+            "src": "/shortcut-icon.png",
+            "sizes": "96x96",
+            "type": "image/png"
+          }
+        ]
+      }
+    ],
+    "screenshots": [
+      {
+        "src": "/screenshots/desktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide"
+      },
+      {
+        "src": "/screenshots/mobile.png",
+        "sizes": "720x1280",
+        "type": "image/png",
+        "form_factor": "narrow"
+      }
+    ]
+  }
