@@ -32,7 +32,7 @@ module.exports = {
           to: path.resolve(__dirname, 'dist/'),
         },
         { from: './src/sw.js', to: 'sw.js' },
-        { from: './src/manifest.json', to: 'manifest.json' }, 
+        { from: 'manifest.json', to: 'manifest.json' }, 
       ],
     }),
     new WorkboxPlugin.InjectManifest({

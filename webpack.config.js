@@ -31,7 +31,7 @@ module.exports = {
           from: path.resolve(__dirname, 'src/assets'),
           to: 'assets',
         },
-        { from: './src/manifest.json', to: 'manifest.json' }, 
+        { from: 'manifest.json', to: 'manifest.json' }, 
       ],
     }),
     new MiniCssExtractPlugin({
