@@ -3,78 +3,26 @@ import HomePage from '../pages/home/home-page.js';
 import AddStoryPage from '../pages/add-story/add-story-page.js';
 import LoginPage from '../pages/login/login-page.js';
 import RegisterPage from '../pages/register/register-page.js';
-import NotFoundPage from '../pages/not-found/not-found-page.js'; // Tambah import
+import NotFoundPage from '../pages/not-found/not-found-page.js';
 
 export default class App {
   constructor() {
     this.mainContent = document.getElementById('main-content');
+
     this.routes = {
       '#/home': () => new HomePage(),
       '#/add-story': () => new AddStoryPage(),
       '#/login': () => new LoginPage(),
       '#/register': () => new RegisterPage(),
-      '#/not-found': () => new NotFoundPage(), 
+      '#/not-found': () => new NotFoundPage(),
     };
-    this.authLink = document.getElementById('auth-link');
-    this.drawerButton = document.getElementById('drawer-button');
-    this.navigationDrawer = document.getElementById('navigation-drawer');
-    this.init();
-  }
 
-  init() {
-    this.updateAuthLink();
-
-    this.drawerButton.addEventListener('click', () => {
-      console.log('Drawer button clicked!');
-      this.navigationDrawer.classList.toggle('-translate-x-full');
-      this.navigationDrawer.classList.toggle('translate-x-0');
-    });
     window.addEventListener('hashchange', () => this.renderPage());
-    this.renderPage();
-
-
-    document.addEventListener('click', (e) => {
-      if (!this.navigationDrawer.contains(e.target) && !this.drawerButton.contains(e.target)) {
-        this.navigationDrawer.classList.add('-translate-x-full');
-        this.navigationDrawer.classList.remove('translate-x-0');
-      }
-    });
-
-    this.navigationDrawer.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        this.navigationDrawer.classList.add('-translate-x-full');
-        this.navigationDrawer.classList.remove('translate-x-0');
-      });
-    });
-
-    this.authLink.addEventListener('click', (e) => {
-      if (this.authLink.textContent === 'Logout') {
-        e.preventDefault();
-        this.logout();
-      }
-    });
-  }
-
-  updateAuthLink() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      this.authLink.textContent = 'Logout';
-      this.authLink.href = '#/logout';
-    } else {
-      this.authLink.textContent = 'Login';
-      this.authLink.href = '#/login';
-    }
-  }
-
-  logout() {
-    localStorage.removeItem('token');
-    this.updateAuthLink();
-    window.location.hash = '#/login';
   }
 
   async renderPage() {
     const hash = window.location.hash || '#/home';
-    const route = this.routes[hash] || this.routes['#/not-found']; // Default ke Not Found
+    const route = this.routes[hash] || this.routes['#/not-found'];
     const page = route();
 
     if (this.mainContent && this.mainContent.children.length > 0) {
@@ -87,6 +35,8 @@ export default class App {
     this.mainContent.innerHTML = await page.render();
     await page.afterRender();
 
+    this.setupDrawer();
+
     this.mainContent.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: 300,
       easing: 'ease-in-out',
@@ -94,5 +44,65 @@ export default class App {
 
     if (window.feather) window.feather.replace();
     this.updateAuthLink();
+  }
+
+  setupDrawer() {
+    const drawerButton = document.getElementById('drawer-button');
+    const navigationDrawer = document.getElementById('navigation-drawer');
+    const authLink = document.getElementById('auth-link');
+
+    if (!drawerButton || !navigationDrawer) return;
+
+    // Toggle drawer
+    drawerButton.addEventListener('click', () => {
+      console.log('Drawer clicked');
+      navigationDrawer.classList.toggle('-translate-x-full');
+      navigationDrawer.classList.toggle('translate-x-0');
+    });
+
+    // Close drawer saat klik luar
+    document.addEventListener('click', (e) => {
+      if (!navigationDrawer.contains(e.target) && !drawerButton.contains(e.target)) {
+        navigationDrawer.classList.add('-translate-x-full');
+        navigationDrawer.classList.remove('translate-x-0');
+      }
+    });
+
+    // Close drawer saat klik link
+    navigationDrawer.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navigationDrawer.classList.add('-translate-x-full');
+        navigationDrawer.classList.remove('translate-x-0');
+      });
+    });
+
+    // Logout listener
+    if (authLink && authLink.textContent === 'Logout') {
+      authLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.logout();
+      });
+    }
+  }
+
+  updateAuthLink() {
+    const authLink = document.getElementById('auth-link');
+    const token = localStorage.getItem('token');
+
+    if (!authLink) return;
+
+    if (token) {
+      authLink.textContent = 'Logout';
+      authLink.href = '#/logout';
+    } else {
+      authLink.textContent = 'Login';
+      authLink.href = '#/login';
+    }
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    this.updateAuthLink();
+    window.location.hash = '#/login';
   }
 }

@@ -4,36 +4,14 @@ import App from '../scripts/pages/app.js';
 import CONFIG from '../scripts/config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // const app = new App({
-  //   content: document.querySelector('#main-content'),
-  //   drawerButton: document.querySelector('#drawer-button'),
-  //   navigationDrawer: document.querySelector('#navigation-drawer'),
-  // });
   const app = new App();
 
-
-  const authLink = document.getElementById('auth-link');
-  if (!authLink) {
-    console.error('Auth link element not found');
-  } else {
-    if (localStorage.getItem('token')) {
-      authLink.textContent = 'Logout';
-      authLink.href = '#/logout';
-      authLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        localStorage.removeItem('token');
-        window.location.hash = '#/login';
-      });
-    } else {
-      authLink.textContent = 'Login';
-      authLink.href = '#/login';
-    }
-  }
-
+  // Jika belum login, arahkan ke login
   if (!localStorage.getItem('token') && !window.location.hash) {
     window.location.hash = '#/login';
   }
 
+  // Registrasi Service Worker + Push Notification
   if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
@@ -54,19 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
   }
-
-  await app.renderPage();
-
-  window.addEventListener('hashchange', async () => {
-    if (localStorage.getItem('token')) {
-      authLink.textContent = 'Logout';
-      authLink.href = '#/logout';
-    } else {
-      authLink.textContent = 'Login';
-      authLink.href = '#/login';
-    }
-    await app.renderPage();
-  });
 });
 
 async function subscribeToPush(registration) {
