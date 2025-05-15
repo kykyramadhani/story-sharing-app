@@ -9,7 +9,7 @@ module.exports = {
   entry: './src/scripts/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     clean: true,
   },
   module: {
@@ -31,6 +31,7 @@ module.exports = {
           from: path.resolve(__dirname, 'src/assets'),
           to: 'assets',
         },
+        { from: './src/manifest.json', to: 'manifest.json' }, 
       ],
     }),
     new MiniCssExtractPlugin({

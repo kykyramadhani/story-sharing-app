@@ -1,8 +1,7 @@
-// src/scripts/utils/index.js
 import 'leaflet/dist/leaflet.css';
 import '../styles/styles.css';
 import App from '../scripts/pages/app.js';
-import CONFIG from '../scripts/config.js'; // Tambah import
+import CONFIG from '../scripts/config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const app = new App({
@@ -33,33 +32,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.hash = '#/login';
   }
 
-  // Registrasi service worker
-  if ('serviceWorker' in navigator) {
-    try {
-      if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
-          }).catch(error => {
-            console.log('Service Worker registration failed:', error);
-          });
-        });
-      }      
-      
-      console.log('Service worker registered:', reg);
+  if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(async (registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
 
-      // Langganan push notification
-      if (Notification.permission === 'granted') {
-        subscribeToPush(reg);
-      } else if (Notification.permission !== 'denied') {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          subscribeToPush(reg);
-        }
-      }
-    } catch (error) {
-      console.error('Service worker registration failed:', error);
-    }
+          if (Notification.permission === 'granted') {
+            await subscribeToPush(registration);
+          } else if (Notification.permission !== 'denied') {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+              await subscribeToPush(registration);
+            }
+          }
+        })
+        .catch(error => {
+          console.log('Service Worker registration failed:', error);
+        });
+    });
   }
 
   await app.renderPage();
@@ -76,15 +67,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// Fungsi untuk langganan push notification
-async function subscribeToPush(reg) {
+async function subscribeToPush(registration) {
   try {
-    const subscription = await reg.pushManager.subscribe({
+    const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: CONFIG.VAPID_PUBLIC_KEY, // Asumsi ada di config.js
+      applicationServerKey: CONFIG.VAPID_PUBLIC_KEY,
     });
 
-    // Kirim subscription ke server (sesuaikan endpoint API)
     await fetch(`${CONFIG.BASE_URL}/subscribe`, {
       method: 'POST',
       headers: {
@@ -93,6 +82,7 @@ async function subscribeToPush(reg) {
       },
       body: JSON.stringify(subscription),
     });
+
     console.log('Subscribed to push notifications');
   } catch (error) {
     console.error('Push subscription failed:', error);
