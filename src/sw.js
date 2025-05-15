@@ -11,12 +11,20 @@ workbox.routing.registerRoute(
   })
 );
 
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : { title: 'Test Notification', body: 'This is a test!' };
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/public/images/icon-192x192.png',
+      icon: '/assets/images/icon-192x192.png',
     })
   );
 });
