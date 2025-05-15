@@ -13,7 +13,7 @@ export default class App {
       '#/add-story': () => new AddStoryPage(),
       '#/login': () => new LoginPage(),
       '#/register': () => new RegisterPage(),
-      '#/not-found': () => new NotFoundPage(), // Tambah rute
+      '#/not-found': () => new NotFoundPage(), 
     };
     this.authLink = document.getElementById('auth-link');
     this.drawerButton = document.getElementById('drawer-button');
@@ -24,13 +24,14 @@ export default class App {
   init() {
     this.updateAuthLink();
 
-    window.addEventListener('hashchange', () => this.renderPage());
-    this.renderPage();
-
     this.drawerButton.addEventListener('click', () => {
+      console.log('Drawer button clicked!');
       this.navigationDrawer.classList.toggle('-translate-x-full');
       this.navigationDrawer.classList.toggle('translate-x-0');
     });
+    window.addEventListener('hashchange', () => this.renderPage());
+    this.renderPage();
+
 
     document.addEventListener('click', (e) => {
       if (!this.navigationDrawer.contains(e.target) && !this.drawerButton.contains(e.target)) {
