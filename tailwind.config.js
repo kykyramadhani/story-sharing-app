@@ -12,6 +12,9 @@ module.exports = {
         'custom-light-green': '#BEE4D0',
         'custom-lighter-green': '#DBFFCB', 
       },
+      transitionProperty: {
+        'transform': 'transform',
+      },
     },
   },
   plugins: [],

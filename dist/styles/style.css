@@ -1447,6 +1447,9 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.duration-300 {
+  transition-duration: 300ms;
+}
 .ease-in-out {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1499,6 +1502,10 @@ body {
 
 ::view-transition-new(root) {
   animation: fade-in var(--transition-duration) ease-in-out;
+}
+
+#navigation-drawer {
+  transition: transform 300ms ease-in-out;
 }
 
 @keyframes fade-out {

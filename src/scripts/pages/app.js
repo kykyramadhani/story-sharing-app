@@ -1,9 +1,8 @@
-// src/scripts/app.js
-import HomePage from '../pages/home/home-page.js';
-import AddStoryPage from '../pages/add-story/add-story-page.js';
-import LoginPage from '../pages/login/login-page.js';
-import RegisterPage from '../pages/register/register-page.js';
-import NotFoundPage from '../pages/not-found/not-found-page.js';
+import HomePage from './home/home-page.js';
+import AddStoryPage from './add-story/add-story-page.js';
+import LoginPage from './login/login-page.js';
+import RegisterPage from './register/register-page.js';
+import NotFoundPage from './not-found/not-found-page.js';
 
 export default class App {
   constructor() {
@@ -49,34 +48,34 @@ export default class App {
   setupDrawer() {
     const drawerButton = document.getElementById('drawer-button');
     const navigationDrawer = document.getElementById('navigation-drawer');
-    const authLink = document.getElementById('auth-link');
 
     if (!drawerButton || !navigationDrawer) return;
 
     // Toggle drawer
     drawerButton.addEventListener('click', () => {
       console.log('Drawer clicked');
-      navigationDrawer.classList.toggle('-translate-x-full');
       navigationDrawer.classList.toggle('translate-x-0');
+      navigationDrawer.classList.toggle('-translate-x-full');
     });
 
     // Close drawer saat klik luar
     document.addEventListener('click', (e) => {
-      if (!navigationDrawer.contains(e.target) && !drawerButton.contains(e.target)) {
-        navigationDrawer.classList.add('-translate-x-full');
+      if (!navigationDrawer.contains(e.target) && !drawerButton.contains(e.target) && !navigationDrawer.classList.contains('-translate-x-full')) {
         navigationDrawer.classList.remove('translate-x-0');
+        navigationDrawer.classList.add('-translate-x-full');
       }
     });
 
     // Close drawer saat klik link
     navigationDrawer.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
-        navigationDrawer.classList.add('-translate-x-full');
         navigationDrawer.classList.remove('translate-x-0');
+        navigationDrawer.classList.add('-translate-x-full');
       });
     });
 
     // Logout listener
+    const authLink = document.getElementById('auth-link');
     if (authLink && authLink.textContent === 'Logout') {
       authLink.addEventListener('click', (e) => {
         e.preventDefault();

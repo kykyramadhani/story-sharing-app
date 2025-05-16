@@ -6,7 +6,8 @@
   <title>Story Sharing App</title>
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#F06292">
-  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="../src/scripts/vendor/feather.min.js"></script>
+
 </head>
 <body class="bg-custom-greenfont-sans text-gray-800">
   <a href="#main-content" class="sr-only bg-custom-light-pink text-white p-2">Skip to Content</a>
@@ -14,7 +15,7 @@
   <header class="bg-custom-light-pink text-white flex justify-between items-center p-5">
     <a href="#/" class="text-xl font-bold">Story Sharing App</a>
     <button id="drawer-button" class="text-2xl font-bold bg-transparent border-0 lg:hidden">☰</button>
-    <nav id="navigation-drawer" class="fixed inset-y-0 left-0 h-1/4 w-52 bg-custom-light-pink shadow-lg transform -translate-x-full transition-transform lg:static lg:bg-transparent lg:shadow-none lg:transform-none lg:flex lg:items-center z-50" aria-label="Main navigation">
+    <nav id="navigation-drawer" class="fixed inset-y-0 left-0 h-1/4 w-52 bg-custom-light-pink shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out lg:static lg:bg-transparent lg:shadow-none lg:transform-none lg:flex lg:items-center z-50" aria-label="Main navigation">
       <ul class="flex flex-col gap-2 p-4 lg:flex-row lg:gap-4 lg:p-0">
         <li><a href="#/home" class="block text-white hover:underline lg:text-white">Home</a></li>
         <li><a href="#/add-story" class="block text-white hover:underline lg:text-white">Add Story</a></li>

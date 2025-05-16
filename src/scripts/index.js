@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css';
 import '../styles/styles.css';
-import App from '../scripts/pages/app.js';
-import CONFIG from '../scripts/config.js';
+import App from './pages/app.js';
+import CONFIG from './config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const app = new App();
@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
   }
+
+  // Render halaman awal
+  await app.renderPage();
 });
 
 async function subscribeToPush(registration) {
