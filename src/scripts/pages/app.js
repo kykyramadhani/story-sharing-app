@@ -16,6 +16,9 @@ export default class App {
       '#/not-found': () => new NotFoundPage(),
     };
 
+    // ⬇️ Setup drawer hanya sekali di awal
+    this.setupDrawer();
+
     window.addEventListener('hashchange', () => this.renderPage());
   }
 
@@ -34,7 +37,7 @@ export default class App {
     this.mainContent.innerHTML = await page.render();
     await page.afterRender();
 
-    this.setupDrawer();
+    // Jangan panggil setupDrawer di sini lagi
 
     this.mainContent.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: 300,
@@ -51,30 +54,30 @@ export default class App {
 
     if (!drawerButton || !navigationDrawer) return;
 
-    // Toggle drawer
     drawerButton.addEventListener('click', () => {
       console.log('Drawer clicked');
       navigationDrawer.classList.toggle('translate-x-0');
       navigationDrawer.classList.toggle('-translate-x-full');
     });
 
-    // Close drawer saat klik luar
     document.addEventListener('click', (e) => {
-      if (!navigationDrawer.contains(e.target) && !drawerButton.contains(e.target) && !navigationDrawer.classList.contains('-translate-x-full')) {
+      if (
+        !navigationDrawer.contains(e.target) &&
+        !drawerButton.contains(e.target) &&
+        !navigationDrawer.classList.contains('-translate-x-full')
+      ) {
         navigationDrawer.classList.remove('translate-x-0');
         navigationDrawer.classList.add('-translate-x-full');
       }
     });
 
-    // Close drawer saat klik link
-    navigationDrawer.querySelectorAll('a').forEach(link => {
+    navigationDrawer.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
         navigationDrawer.classList.remove('translate-x-0');
         navigationDrawer.classList.add('-translate-x-full');
       });
     });
 
-    // Logout listener
     const authLink = document.getElementById('auth-link');
     if (authLink && authLink.textContent === 'Logout') {
       authLink.addEventListener('click', (e) => {
