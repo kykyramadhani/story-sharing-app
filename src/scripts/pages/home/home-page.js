@@ -112,7 +112,7 @@ export default class HomePage {
         tileSize: 512,
         zoomOffset: -1,
         errorTileUrl: ''
-      });
+      }).addTo(map);
 
       const satelliteLayer = L.tileLayer(`https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`, {
         attribution: '© <a href="https://www.maptiler.com/">MapTiler</a>',
@@ -121,35 +121,73 @@ export default class HomePage {
         errorTileUrl: ''
       });
 
-      streetsLayer.addTo(map);
-
       const baseMaps = {
         "Streets": streetsLayer,
         "Satellite": satelliteLayer
       };
       L.control.layers(baseMaps).addTo(map);
 
+      // Prefetch tiles satelit di latar belakang
+      this.prefetchSatelliteTiles(lat, lon, 13);
+
       streetsLayer.on('tileerror', (error) => {
         console.error('Street tile error for story', story.id, error);
+        if (!navigator.onLine) {
+          document.getElementById(`map-${story.id}`).innerHTML = '<p class="text-red-500">Street map unavailable offline</p>';
+        }
       });
 
       satelliteLayer.on('tileerror', (error) => {
         console.error('Satellite tile error for story', story.id, error);
-        alert('Failed to load satellite map tiles.');
+        if (!navigator.onLine) {
+          document.getElementById(`map-${story.id}`).innerHTML = '<p class="text-red-500">Satellite map unavailable offline</p>';
+        }
       });
 
       const defaultIcon = L.icon({
         iconUrl: '../../../../assets/marker-icon.png',
-         shadowUrl: '../../../../assets/marker-shadow.png',
+        shadowUrl: '../../../../assets/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
-      });         
+      });
 
       const marker = L.marker([lat, lon], { icon: defaultIcon }).addTo(map);
       marker.bindPopup(`<b>${story.name}</b><br>${story.description.substring(0, 50)}...`).openPopup();
     });
+  }
+
+  // Fungsi untuk prefetch tiles satelit
+  prefetchSatelliteTiles(lat, lon, zoom = 13) {
+    if (!navigator.onLine) return; // Hanya prefetch saat online
+
+    const tileLayerUrl = `https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`;
+    const tileSize = 512;
+    const tilesAround = 2; // Prefetch 5x5 tiles (25 tiles) di sekitar lokasi
+
+    // Konversi koordinat ke tile numbers
+    const rad = (x) => (x * Math.PI) / 180;
+    const n = Math.pow(2, zoom);
+    const xTile = Math.floor(n * ((lon + 180) / 360));
+    const yTile = Math.floor(n * (1 - Math.log(Math.tan(rad(lat)) + 1 / Math.cos(rad(lat))) / Math.PI) / 2);
+
+    // Prefetch tiles di sekitar lokasi
+    for (let dx = -tilesAround; dx <= tilesAround; dx++) {
+      for (let dy = -tilesAround; dy <= tilesAround; dy++) {
+        const tileX = xTile + dx;
+        const tileY = yTile + dy;
+        const tileUrl = tileLayerUrl
+          .replace('{z}', zoom)
+          .replace('{x}', tileX)
+          .replace('{y}', tileY);
+
+        // Buat request untuk prefetch (tanpa menampilkan)
+        fetch(tileUrl, { mode: 'no-cors' })
+          .then(() => console.log(`Prefetched satellite tile: ${tileUrl}`))
+          .catch(err => console.log(`Failed to prefetch satellite tile: ${tileUrl}`, err));
+      }
+    }
   }
 
   showError(message) {
@@ -175,4 +213,4 @@ export default class HomePage {
   hideLoading() {
     document.getElementById('loading-container').innerHTML = '';
   }
-}
+} 
