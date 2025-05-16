@@ -7,84 +7,50 @@ import NotFoundPage from './not-found/not-found-page.js';
 export default class App {
   constructor() {
     this.mainContent = document.getElementById('main-content');
-
     this.routes = {
       '#/home': () => new HomePage(),
       '#/add-story': () => new AddStoryPage(),
       '#/login': () => new LoginPage(),
       '#/register': () => new RegisterPage(),
-      '#/not-found': () => new NotFoundPage(),
     };
-
-    // ⬇️ Setup drawer hanya sekali di awal
-    this.setupDrawer();
-
     window.addEventListener('hashchange', () => this.renderPage());
   }
 
   async renderPage() {
     const hash = window.location.hash || '#/home';
-    const route = this.routes[hash] || this.routes['#/not-found'];
-    const page = route();
-
-    if (this.mainContent && this.mainContent.children.length > 0) {
-      await this.mainContent.animate([{ opacity: 1 }, { opacity: 0 }], {
-        duration: 300,
-        easing: 'ease-in-out',
-      }).finished;
-    }
+    const page = this.routes[hash]?.() || new NotFoundPage();
 
     this.mainContent.innerHTML = await page.render();
     await page.afterRender();
 
-    // Jangan panggil setupDrawer di sini lagi
-
-    this.mainContent.animate([{ opacity: 0 }, { opacity: 1 }], {
-      duration: 300,
-      easing: 'ease-in-out',
-    });
-
-    if (window.feather) window.feather.replace();
+    this.setupDrawer();
     this.updateAuthLink();
+    if (window.feather) window.feather.replace();
   }
 
   setupDrawer() {
-    const drawerButton = document.getElementById('drawer-button');
-    const navigationDrawer = document.getElementById('navigation-drawer');
+    const drawer = document.getElementById('drawer');
+    const button = document.getElementById('drawer-button');
+    const overlay = document.getElementById('overlay');
 
-    if (!drawerButton || !navigationDrawer) return;
+    const openDrawer = () => {
+      drawer.classList.remove('-translate-x-full');
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      overlay.classList.add('opacity-50');
+    };
 
-    drawerButton.addEventListener('click', () => {
-      console.log('Drawer clicked');
-      navigationDrawer.classList.toggle('translate-x-0');
-      navigationDrawer.classList.toggle('-translate-x-full');
-    });
+    const closeDrawer = () => {
+      drawer.classList.add('-translate-x-full');
+      overlay.classList.add('opacity-0', 'pointer-events-none');
+      overlay.classList.remove('opacity-50');
+    };
 
-    document.addEventListener('click', (e) => {
-      if (
-        !navigationDrawer.contains(e.target) &&
-        !drawerButton.contains(e.target) &&
-        !navigationDrawer.classList.contains('-translate-x-full')
-      ) {
-        navigationDrawer.classList.remove('translate-x-0');
-        navigationDrawer.classList.add('-translate-x-full');
-      }
-    });
+    button.onclick = openDrawer;
+    overlay.onclick = closeDrawer;
 
-    navigationDrawer.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        navigationDrawer.classList.remove('translate-x-0');
-        navigationDrawer.classList.add('-translate-x-full');
-      });
-    });
-
-    const authLink = document.getElementById('auth-link');
-    if (authLink && authLink.textContent === 'Logout') {
-      authLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.logout();
-      });
-    }
+    document.querySelectorAll('#drawer a').forEach(link =>
+      link.addEventListener('click', closeDrawer)
+    );
   }
 
   updateAuthLink() {
@@ -96,15 +62,15 @@ export default class App {
     if (token) {
       authLink.textContent = 'Logout';
       authLink.href = '#/logout';
+      authLink.onclick = (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        this.updateAuthLink();
+        window.location.hash = '#/login';
+      };
     } else {
       authLink.textContent = 'Login';
       authLink.href = '#/login';
     }
-  }
-
-  logout() {
-    localStorage.removeItem('token');
-    this.updateAuthLink();
-    window.location.hash = '#/login';
   }
 }

@@ -124,7 +124,6 @@ export default class HomePage {
       };
       L.control.layers(baseMaps).addTo(map);
 
-      // Prefetch tiles satelit dengan membuat layer sementara
       this.prefetchSatelliteTiles(map, lat, lon, 13);
 
       streetsLayer.on('tileerror', (error) => {
@@ -155,11 +154,9 @@ export default class HomePage {
     });
   }
 
-  // Fungsi untuk prefetch tiles satelit dengan layer sementara
   prefetchSatelliteTiles(map, lat, lon, zoom = 13) {
-    if (!navigator.onLine) return; // Hanya prefetch saat online
+    if (!navigator.onLine) return; 
 
-    // Buat layer satelit sementara untuk memuat tiles
     const tempSatelliteLayer = L.tileLayer(`https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`, {
       attribution: '© <a href="https://www.maptiler.com/">MapTiler</a>',
       tileSize: 512,
@@ -167,17 +164,13 @@ export default class HomePage {
       errorTileUrl: ''
     });
 
-    // Tambahkan layer sementara ke peta untuk memuat tiles
     tempSatelliteLayer.addTo(map);
 
-    // Tunggu tiles dimuat (berikan waktu 2 detik untuk memastikan tiles diminta)
     setTimeout(() => {
-      // Hapus layer sementara setelah tiles dimuat
       map.removeLayer(tempSatelliteLayer);
       console.log(`Finished prefetching satellite tiles for lat: ${lat}, lon: ${lon}`);
     }, 2000);
 
-    // Tambah handler untuk logging saat tiles dimuat
     tempSatelliteLayer.on('tileload', (e) => {
       console.log(`Prefetched satellite tile: ${e.tile.src}`);
     });

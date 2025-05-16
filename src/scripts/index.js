@@ -7,12 +7,10 @@ import CONFIG from './config.js';
 document.addEventListener('DOMContentLoaded', async () => {
   const app = new App();
 
-  // Jika belum login, arahkan ke login
   if (!localStorage.getItem('token') && !window.location.hash) {
     window.location.hash = '#/login';
   }
 
-  // Registrasi Service Worker + Push Notification
   if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
@@ -36,7 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Render halaman awal
   await app.renderPage();
 });
 
