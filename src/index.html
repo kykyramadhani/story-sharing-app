@@ -6,7 +6,7 @@
   <title>Story Sharing App</title>
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#F06292">
-  <script src="/src/scripts/vendor/feather.min.js"></script>
+  <script src="./scripts/vendor/feather.min.js"></script>
 
 </head>
 <body class="bg-custom-greenfont-sans text-gray-800">
@@ -27,5 +27,9 @@
   <main id="main-content" class="p-5"></main>
 
   <script type="module" src="/app.bundle.js"></script>
+  <script>
+    feather.replace();
+  </script>
+
 </body>
 </html>

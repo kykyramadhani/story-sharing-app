@@ -158,12 +158,6 @@ export default class AddStoryPage {
           canvas.getContext('2d').drawImage(video, 0, 0);
           const imageDataUrl = canvas.toDataURL('image/png');
 
-          console.log('imageDataUrl:', imageDataUrl);
-          if (!imageDataUrl || imageDataUrl === 'data:,') {
-            alert('Failed to capture image data. Please try again.');
-            return;
-          }
-
           const blob = await (await fetch(imageDataUrl)).blob();
           capturedPhoto = new File([blob], 'captured-photo.png', { type: 'image/png' });
 
