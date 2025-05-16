@@ -49,7 +49,6 @@ async function subscribeToPush(registration) {
     }
 
     const convertedVapidKey = urlBase64ToUint8Array(CONFIG.VAPID_PUBLIC_KEY);
-    console.log('Converted VAPID Key:', convertedVapidKey);
 
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
@@ -65,7 +64,6 @@ async function subscribeToPush(registration) {
         auth: subscription.toJSON().keys.auth,
       },
     };
-    registration.pushManager.getSubscription().then(sub => console.log('Subscription:', sub));
 
     const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
       method: 'POST',
