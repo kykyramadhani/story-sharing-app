@@ -33,6 +33,7 @@ module.exports = {
         },
         { from: './src/sw.js', to: 'sw.js' },
         { from: 'manifest.json', to: 'manifest.json' }, 
+        { from: '.src/feather.min.js', to: 'feather.min.js' }, 
       ],
     }),
     new WorkboxPlugin.InjectManifest({

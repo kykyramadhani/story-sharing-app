@@ -32,6 +32,8 @@ module.exports = {
           to: 'assets',
         },
         { from: 'manifest.json', to: 'manifest.json' }, 
+        { from: 'src/feather.min.js', to: 'feather.min.js' }, 
+
       ],
     }),
     new MiniCssExtractPlugin({
