@@ -65,6 +65,7 @@ async function subscribeToPush(registration) {
         auth: subscription.toJSON().keys.auth,
       },
     };
+    registration.pushManager.getSubscription().then(sub => console.log('Subscription:', sub));
 
     const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
       method: 'POST',

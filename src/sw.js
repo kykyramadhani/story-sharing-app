@@ -20,39 +20,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Story Notification', body: 'Anda memiliki notifikasi baru.' };
-
-  if (event.data) {
-    try {
-      const json = event.data.json();
-
-      data.title = json.title || data.title;
-      data.body = (json.options && json.options.body) || data.body;
-    } catch (err) {
-      console.error('Error parsing push event data:', err);
-    }
-  }
-
-  const options = {
-    body: data.body,
-    icon: '/assets/icon-192x192.png',
-    badge: '/assets/icon-192x192.png',
-    vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1,
-    },
-    actions: [
-      {
-        action: 'open_app',
-        title: 'Buka Aplikasi',
-        icon: '/assets/icon-192x192.png',
-      },
-    ],
-  };
-
+  const data = event.data ? event.data.json() : { title: 'Default Notification', body: 'No data provided' };
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title, {
+      body: data.options.body || 'No body provided',
+      icon: '/assets/icon-192x192.png',
+    })
   );
 });
 
