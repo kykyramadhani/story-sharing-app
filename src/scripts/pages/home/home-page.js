@@ -4,7 +4,7 @@ import HomePresenter from '../../presenters/home-presenter.js';
 import { showFormattedDate } from '../../utils/index.js';
 import CONFIG from '../../config.js';
 import L from 'leaflet';
-import { getStories, saveStories, clearStories } from '../../utils/indexed-db.js'; // Tambah import
+import { getStories, saveStories, clearStories } from '../../utils/indexed-db.js';
 
 export default class HomePage {
   #presenter;
@@ -37,14 +37,13 @@ export default class HomePage {
 
     await this.#presenter.fetchStories();
 
-    // Tambah event listener untuk tombol clear cache
     const clearCacheButton = document.getElementById('clear-cache');
     if (clearCacheButton) {
       clearCacheButton.addEventListener('click', async () => {
         try {
           await clearStories();
           this.showSuccess('Cached stories cleared successfully!');
-          this.displayStories([]); // Kosongkan tampilan
+          this.displayStories([]);
         } catch (error) {
           this.showError('Failed to clear cached stories: ' + error.message);
         }
@@ -59,7 +58,6 @@ export default class HomePage {
   async displayStories(stories) {
     const storiesList = document.getElementById('stories-list');
     if (!stories || stories.length === 0) {
-      // Coba ambil dari IndexedDB jika tidak ada data dari API
       try {
         const cachedStories = await getStories();
         if (cachedStories.length > 0) {
@@ -75,7 +73,6 @@ export default class HomePage {
       return;
     }
 
-    // Simpan ke IndexedDB
     try {
       await saveStories(stories);
     } catch (error) {
@@ -127,8 +124,8 @@ export default class HomePage {
       };
       L.control.layers(baseMaps).addTo(map);
 
-      // Prefetch tiles satelit di latar belakang
-      this.prefetchSatelliteTiles(lat, lon, 13);
+      // Prefetch tiles satelit dengan membuat layer sementara
+      this.prefetchSatelliteTiles(map, lat, lon, 13);
 
       streetsLayer.on('tileerror', (error) => {
         console.error('Street tile error for story', story.id, error);
@@ -158,36 +155,36 @@ export default class HomePage {
     });
   }
 
-  // Fungsi untuk prefetch tiles satelit
-  prefetchSatelliteTiles(lat, lon, zoom = 13) {
+  // Fungsi untuk prefetch tiles satelit dengan layer sementara
+  prefetchSatelliteTiles(map, lat, lon, zoom = 13) {
     if (!navigator.onLine) return; // Hanya prefetch saat online
 
-    const tileLayerUrl = `https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`;
-    const tileSize = 512;
-    const tilesAround = 2; // Prefetch 5x5 tiles (25 tiles) di sekitar lokasi
+    // Buat layer satelit sementara untuk memuat tiles
+    const tempSatelliteLayer = L.tileLayer(`https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`, {
+      attribution: '© <a href="https://www.maptiler.com/">MapTiler</a>',
+      tileSize: 512,
+      zoomOffset: -1,
+      errorTileUrl: ''
+    });
 
-    // Konversi koordinat ke tile numbers
-    const rad = (x) => (x * Math.PI) / 180;
-    const n = Math.pow(2, zoom);
-    const xTile = Math.floor(n * ((lon + 180) / 360));
-    const yTile = Math.floor(n * (1 - Math.log(Math.tan(rad(lat)) + 1 / Math.cos(rad(lat))) / Math.PI) / 2);
+    // Tambahkan layer sementara ke peta untuk memuat tiles
+    tempSatelliteLayer.addTo(map);
 
-    // Prefetch tiles di sekitar lokasi
-    for (let dx = -tilesAround; dx <= tilesAround; dx++) {
-      for (let dy = -tilesAround; dy <= tilesAround; dy++) {
-        const tileX = xTile + dx;
-        const tileY = yTile + dy;
-        const tileUrl = tileLayerUrl
-          .replace('{z}', zoom)
-          .replace('{x}', tileX)
-          .replace('{y}', tileY);
+    // Tunggu tiles dimuat (berikan waktu 2 detik untuk memastikan tiles diminta)
+    setTimeout(() => {
+      // Hapus layer sementara setelah tiles dimuat
+      map.removeLayer(tempSatelliteLayer);
+      console.log(`Finished prefetching satellite tiles for lat: ${lat}, lon: ${lon}`);
+    }, 2000);
 
-        // Buat request untuk prefetch (tanpa menampilkan)
-        fetch(tileUrl, { mode: 'no-cors' })
-          .then(() => console.log(`Prefetched satellite tile: ${tileUrl}`))
-          .catch(err => console.log(`Failed to prefetch satellite tile: ${tileUrl}`, err));
-      }
-    }
+    // Tambah handler untuk logging saat tiles dimuat
+    tempSatelliteLayer.on('tileload', (e) => {
+      console.log(`Prefetched satellite tile: ${e.tile.src}`);
+    });
+
+    tempSatelliteLayer.on('tileerror', (e) => {
+      console.error(`Failed to prefetch satellite tile: ${e.tile.src}`, e);
+    });
   }
 
   showError(message) {
@@ -213,4 +210,4 @@ export default class HomePage {
   hideLoading() {
     document.getElementById('loading-container').innerHTML = '';
   }
-} 
+}
