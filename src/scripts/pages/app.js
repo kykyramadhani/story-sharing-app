@@ -29,37 +29,46 @@ export default class App {
   }
 
   setupDrawer() {
-    const drawer = document.getElementById('drawer');
-    const button = document.getElementById('drawer-button');
-    const overlay = document.getElementById('overlay');
+  const drawer = document.getElementById('drawer');
+  const button = document.getElementById('drawer-button');
+  const overlay = document.getElementById('overlay');
 
-    const openDrawer = () => {
-      drawer.classList.remove('-translate-x-full');
-      overlay.classList.remove('opacity-0', 'pointer-events-none');
-      overlay.classList.add('opacity-50');
-    };
+  const openDrawer = () => {
+    drawer.classList.remove('-translate-x-full');
+    overlay.classList.remove('opacity-0', 'pointer-events-none');
+    overlay.classList.add('opacity-50');
+  };
 
-    const closeDrawer = () => {
-      drawer.classList.add('-translate-x-full');
-      overlay.classList.add('opacity-0', 'pointer-events-none');
-      overlay.classList.remove('opacity-50');
-    };
+  const closeDrawer = () => {
+    drawer.classList.add('-translate-x-full');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    overlay.classList.remove('opacity-50');
+  };
 
-    button.onclick = openDrawer;
-    overlay.onclick = closeDrawer;
+  button.onclick = () => {
+    const isOpen = !drawer.classList.contains('-translate-x-full');
+    if (isOpen) {
+      closeDrawer();
+    } else {
+      openDrawer();
+    }
+  };
 
-    document.querySelectorAll('#drawer a').forEach(link =>
-      link.addEventListener('click', closeDrawer)
-    );
-  }
+  overlay.onclick = closeDrawer;
+
+  document.querySelectorAll('#drawer a').forEach(link =>
+    link.addEventListener('click', closeDrawer)
+  );
+}
+
 
   updateAuthLink() {
-    const authLink = document.getElementById('auth-link');
-    const token = localStorage.getItem('token');
+  const authLink = document.getElementById('auth-link');
+  const authLinkLg = document.getElementById('auth-link-lg');
+  const token = localStorage.getItem('token');
 
-    if (!authLink) return;
-
-    if (token) {
+  if (token) {
+    if (authLink) {
       authLink.textContent = 'Logout';
       authLink.href = '#/logout';
       authLink.onclick = (e) => {
@@ -68,9 +77,28 @@ export default class App {
         this.updateAuthLink();
         window.location.hash = '#/login';
       };
-    } else {
+    }
+    if (authLinkLg) {
+      authLinkLg.textContent = 'Logout';
+      authLinkLg.href = '#/logout';
+      authLinkLg.onclick = (e) => {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        this.updateAuthLink();
+        window.location.hash = '#/login';
+      };
+    }
+  } else {
+    if (authLink) {
       authLink.textContent = 'Login';
       authLink.href = '#/login';
+      authLink.onclick = null;
+    }
+    if (authLinkLg) {
+      authLinkLg.textContent = 'Login';
+      authLinkLg.href = '#/login';
+      authLinkLg.onclick = null;
     }
   }
+}
 }
