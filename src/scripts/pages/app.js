@@ -1,5 +1,6 @@
 import HomePage from './home/home-page.js';
 import AddStoryPage from './add-story/add-story-page.js';
+import FavoritePage from './favorite/favorite-page.js';
 import LoginPage from './login/login-page.js';
 import RegisterPage from './register/register-page.js';
 import NotFoundPage from './not-found/not-found-page.js';
@@ -11,6 +12,7 @@ export default class App {
       '#/home': () => new HomePage(),
       '#/add-story': () => new AddStoryPage(),
       '#/login': () => new LoginPage(),
+      '#/favorite': () => new FavoritePage(),
       '#/register': () => new RegisterPage(),
     };
     window.addEventListener('hashchange', () => this.renderPage());

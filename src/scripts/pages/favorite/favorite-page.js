@@ -1,22 +1,14 @@
-// src/scripts/pages/home/home-page.js
-import Api from '../../data/api.js';
-import HomePresenter from '../../presenters/home-presenter.js';
 import { showFormattedDate } from '../../utils/index.js';
 import CONFIG from '../../config.js';
 import L from 'leaflet';
-import { getFavoriteStories, saveFavoriteStory, removeFavoriteStory, isStoryFavorite, initDb } from '../../utils/indexed-db.js';
+import { getFavoriteStories, removeFavoriteStory, isStoryFavorite } from '../../utils/indexed-db.js';
 
-export default class HomePage {
-  #presenter;
-
+export default class FavoritePage {
   async render() {
     return `
       <section class="container p-6 mx-auto">
-        <h1 class="text-2xl font-bold mb-4 text-pink-600">All Stories</h1>
-        <button id="clear-favorites" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mb-4 flex items-center gap-2">
-          <i data-feather="trash-2"></i> Clear Favorite Stories
-        </button>
-        <div id="stories-list" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+        <h1 class="text-2xl font-bold mb-4 text-pink-600">Favorite Stories</h1>
+        <div id="favorite-stories-list" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
         <div id="loading-container" class="text-center"></div>
       </section>
     `;
@@ -30,58 +22,31 @@ export default class HomePage {
       return;
     }
 
-    this.#presenter = new HomePresenter({
-      model: Api,
-      view: this,
-    });
-
-    await this.#presenter.fetchStories();
-
-    const clearFavoritesButton = document.getElementById('clear-favorites');
-    if (clearFavoritesButton) {
-      clearFavoritesButton.addEventListener('click', async () => {
-        try {
-          const db = await initDb();
-          const transaction = db.transaction(['favorite-stories'], 'readwrite');
-          const store = transaction.objectStore('favorite-stories');
-          await store.clear();
-          this.showSuccess('Favorite stories cleared successfully!');
-          this.displayStories(await this.#presenter.fetchStories()); // Reload dari API
-        } catch (error) {
-          this.showError('Failed to clear favorite stories: ' + error.message);
-        }
-      });
-    }
+    await this.displayFavoriteStories();
 
     if (window.feather) {
       window.feather.replace();
     }
   }
 
-  async displayStories(stories) {
-    const storiesList = document.getElementById('stories-list');
-    if (!stories || stories.length === 0) {
-      try {
-        const favoriteStories = await getFavoriteStories();
-        if (favoriteStories.length > 0) {
-          this.#renderStories(favoriteStories);
-          this.showSuccess('Loaded favorite stories from cache');
-          return;
-        }
-        storiesList.innerHTML = '<p class="text-gray-600 col-span-full">No stories available. Try adding some to favorites!</p>';
-      } catch (error) {
-        storiesList.innerHTML = '<p class="text-gray-600 col-span-full">No stories available.</p>';
-        console.error('Error loading favorite stories:', error);
+  async displayFavoriteStories() {
+    const favoriteStoriesList = document.getElementById('favorite-stories-list');
+    try {
+      const favoriteStories = await getFavoriteStories();
+      if (favoriteStories.length === 0) {
+        favoriteStoriesList.innerHTML = '<p class="text-gray-600 col-span-full">No favorite stories found. Add some from the home page!</p>';
+        return;
       }
-      return;
+      this.#renderStories(favoriteStories);
+    } catch (error) {
+      favoriteStoriesList.innerHTML = '<p class="text-red-600 col-span-full">Failed to load favorite stories: ' + error.message + '</p>';
+      console.error('Error loading favorite stories:', error);
     }
-
-    this.#renderStories(stories);
   }
 
   async #renderStories(stories) {
-    const storiesList = document.getElementById('stories-list');
-    storiesList.innerHTML = await Promise.all(stories.map(async (story) => {
+    const favoriteStoriesList = document.getElementById('favorite-stories-list');
+    favoriteStoriesList.innerHTML = await Promise.all(stories.map(async (story) => {
       const isFavorite = await isStoryFavorite(story.id);
       return `
         <article class="ml-20 bg-white p-4 rounded-lg shadow relative">
@@ -90,7 +55,7 @@ export default class HomePage {
           <p class="text-gray-600">${story.description.length > 100 ? story.description.substring(0, 100) + '...' : story.description}</p>
           <p class="text-gray-500 text-sm mt-1">${showFormattedDate(story.createdAt)}</p>
           <div id="map-${story.id}" class="w-full h-32 mt-2"></div>
-          <button id="favorite-btn-${story.id}" class="favorite-btn absolute top-4 right-4 text-2xl" data-story-id="${story.id}" data-is-favorite="${isFavorite}">
+          <button id="favorite-btn-${story.id}" class="favorite-btn absolute top-4 right-4 text-2xl ${isFavorite ? 'favorited' : ''}" data-story-id="${story.id}">
             <i data-feather="heart"></i>
           </button>
         </article>
@@ -159,17 +124,15 @@ export default class HomePage {
       const favoriteBtn = document.getElementById(`favorite-btn-${story.id}`);
       favoriteBtn.addEventListener('click', async () => {
         const isCurrentlyFavorite = await isStoryFavorite(story.id);
-        const newFavoriteStatus = !isCurrentlyFavorite;
-        favoriteBtn.setAttribute('data-is-favorite', newFavoriteStatus);
-
-        if (newFavoriteStatus) {
-          await saveFavoriteStory(story);
-          this.showSuccess(`Added ${story.name} to favorites`);
-        } else {
+        if (isCurrentlyFavorite) {
           await removeFavoriteStory(story.id);
+          favoriteBtn.classList.remove('favorited');
           this.showSuccess(`Removed ${story.name} from favorites`);
+          this.displayFavoriteStories(); // Refresh halaman
+        } else {
+          this.showError('This story is already in favorites.');
         }
-        if (window.feather) window.feather.replace(); // Perbarui ikon
+        if (window.feather) window.feather.replace();
       });
     });
 
@@ -203,26 +166,20 @@ export default class HomePage {
   }
 
   showError(message) {
-    const storiesList = document.getElementById('stories-list');
-    storiesList.innerHTML = `<p class="text-red-600 col-span-full">Failed to load stories: ${message}</p>`;
+    const favoriteStoriesList = document.getElementById('favorite-stories-list');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'text-red-600 col-span-full text-center mb-4';
+    errorDiv.textContent = message;
+    favoriteStoriesList.prepend(errorDiv);
+    setTimeout(() => errorDiv.remove(), 3000);
   }
 
   showSuccess(message) {
-    const storiesList = document.getElementById('stories-list');
+    const favoriteStoriesList = document.getElementById('favorite-stories-list');
     const successDiv = document.createElement('div');
     successDiv.className = 'text-green-600 col-span-full text-center mb-4';
     successDiv.textContent = message;
-    storiesList.prepend(successDiv);
+    favoriteStoriesList.prepend(successDiv);
     setTimeout(() => successDiv.remove(), 3000);
   }
-
-  showLoading() {
-    document.getElementById('loading-container').innerHTML = `
-      <div class="loader"></div>
-    `;
-  }
-
-  hideLoading() {
-    document.getElementById('loading-container').innerHTML = '';
-  }
-}
+} 

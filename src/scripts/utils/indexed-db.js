@@ -83,3 +83,6 @@ export async function isStoryFavorite(storyId) {
     request.onerror = () => reject(request.error);
   });
 }
+
+// Ekspor initDb
+export { initDb };

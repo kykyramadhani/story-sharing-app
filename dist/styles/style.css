@@ -1496,12 +1496,27 @@ body {
   color: #333;
 }
 
-.favorite-btn i[data-feather="heart"] {
-  color: #ccc;
+.favorite-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 1.5rem; 
 }
-.favorite-btn i[data-feather="heart"][data-is-favorite="true"] {
-  color: #e0245e;
-  fill: #e0245e;
+
+.favorite-btn i[data-feather="heart"] {
+  stroke: #ccc; 
+  transition: stroke 0.3s ease;
+}
+
+.favorite-btn.favorited i[data-feather="heart"],
+.favorite-btn.favorited svg.feather.feather-heart {
+  stroke: #e0245e !important; 
+  fill: #e0245e !important; 
+}
+
+.favorite-btn:hover i[data-feather="heart"],
+.favorite-btn:hover svg.feather.feather-heart {
+  stroke: #e0245e;
 }
 
 .sr-only {

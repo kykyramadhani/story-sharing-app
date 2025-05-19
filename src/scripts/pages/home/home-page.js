@@ -4,7 +4,7 @@ import HomePresenter from '../../presenters/home-presenter.js';
 import { showFormattedDate } from '../../utils/index.js';
 import CONFIG from '../../config.js';
 import L from 'leaflet';
-import { getFavoriteStories, saveFavoriteStory, removeFavoriteStory, isStoryFavorite } from '../../utils/indexed-db.js';
+import { getFavoriteStories, saveFavoriteStory, removeFavoriteStory, isStoryFavorite, initDb } from '../../utils/indexed-db.js';
 
 export default class HomePage {
   #presenter;
@@ -46,7 +46,7 @@ export default class HomePage {
           const store = transaction.objectStore('favorite-stories');
           await store.clear();
           this.showSuccess('Favorite stories cleared successfully!');
-          this.displayStories([]);
+          this.displayStories(await this.#presenter.fetchStories());
         } catch (error) {
           this.showError('Failed to clear favorite stories: ' + error.message);
         }
@@ -90,8 +90,8 @@ export default class HomePage {
           <p class="text-gray-600">${story.description.length > 100 ? story.description.substring(0, 100) + '...' : story.description}</p>
           <p class="text-gray-500 text-sm mt-1">${showFormattedDate(story.createdAt)}</p>
           <div id="map-${story.id}" class="w-full h-32 mt-2"></div>
-          <button id="favorite-btn-${story.id}" class="favorite-btn absolute top-4 right-4 text-2xl" data-story-id="${story.id}">
-            <i data-feather="${isFavorite ? 'heart' : 'heart'}"></i>
+          <button id="favorite-btn-${story.id}" class="favorite-btn absolute top-4 right-4 text-2xl ${isFavorite ? 'favorited' : ''}" data-story-id="${story.id}">
+            <i data-feather="heart"></i>
           </button>
         </article>
       `;
@@ -161,11 +161,11 @@ export default class HomePage {
         const isCurrentlyFavorite = await isStoryFavorite(story.id);
         if (isCurrentlyFavorite) {
           await removeFavoriteStory(story.id);
-          favoriteBtn.innerHTML = '<i data-feather="heart"></i>';
+          favoriteBtn.classList.remove('favorited');
           this.showSuccess(`Removed ${story.name} from favorites`);
         } else {
           await saveFavoriteStory(story);
-          favoriteBtn.innerHTML = '<i data-feather="heart"></i>';
+          favoriteBtn.classList.add('favorited');
           this.showSuccess(`Added ${story.name} to favorites`);
         }
         if (window.feather) window.feather.replace();
