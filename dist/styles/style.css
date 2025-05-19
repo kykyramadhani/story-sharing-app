@@ -1198,6 +1198,9 @@ video {
 .fixed {
   position: fixed;
 }
+.absolute {
+  position: absolute;
+}
 .relative {
   position: relative;
 }
@@ -1207,8 +1210,14 @@ video {
 .left-0 {
   left: 0px;
 }
+.right-4 {
+  right: 1rem;
+}
 .top-0 {
   top: 0px;
+}
+.top-4 {
+  top: 1rem;
 }
 .z-30 {
   z-index: 30;

@@ -1,64 +1,85 @@
 // src/scripts/utils/indexed-db.js
-const DB_NAME = 'storyApp';
+const DB_NAME = 'story-sharing-app';
 const DB_VERSION = 1;
-const STORE_NAME = 'stories';
+const STORE_NAME = 'favorite-stories';
 
-export const initIndexedDB = () => {
+let dbPromise;
+
+function initDb() {
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onerror = (event) => {
+        console.error('Error opening IndexedDB:', event.target.error);
+        reject(event.target.error);
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+    });
+  }
+  return dbPromise;
+}
+
+// Menyimpan story sebagai favorit
+export async function saveFavoriteStory(story) {
+  const db = await initDb();
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const transaction = db.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(story);
 
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-
-    request.onsuccess = (event) => {
-      resolve(event.target.result);
-    };
-
-    request.onerror = (event) => {
-      reject(event.target.error);
-    };
-  });
-};
-
-export const saveStories = async (stories) => {
-  const db = await initIndexedDB();
-  const transaction = db.transaction([STORE_NAME], 'readwrite');
-  const store = transaction.objectStore(STORE_NAME);
-
-  stories.forEach((story) => {
-    store.put(story);
-  });
-
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-};
-
-export const getStories = async () => {
-  const db = await initIndexedDB();
-  const transaction = db.transaction([STORE_NAME], 'readonly');
-  const store = transaction.objectStore(STORE_NAME);
-  const request = store.getAll();
-
-  return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
-};
+}
 
-export const clearStories = async () => {
-  const db = await initIndexedDB();
-  const transaction = db.transaction([STORE_NAME], 'readwrite');
-  const store = transaction.objectStore(STORE_NAME);
-  const request = store.clear();
-
+// Mendapatkan semua story favorit
+export async function getFavoriteStories() {
+  const db = await initDb();
   return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve();
+    const transaction = db.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
-};
+}
+
+// Menghapus story dari favorit
+export async function removeFavoriteStory(storyId) {
+  const db = await initDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete(storyId);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Mengecek apakah story sudah ada di favorit
+export async function isStoryFavorite(storyId) {
+  const db = await initDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(storyId);
+
+    request.onsuccess = () => {
+      resolve(!!request.result);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}

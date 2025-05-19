@@ -4,7 +4,7 @@ import HomePresenter from '../../presenters/home-presenter.js';
 import { showFormattedDate } from '../../utils/index.js';
 import CONFIG from '../../config.js';
 import L from 'leaflet';
-import { getStories, saveStories, clearStories } from '../../utils/indexed-db.js';
+import { getFavoriteStories, saveFavoriteStory, removeFavoriteStory, isStoryFavorite } from '../../utils/indexed-db.js';
 
 export default class HomePage {
   #presenter;
@@ -13,8 +13,8 @@ export default class HomePage {
     return `
       <section class="container p-6 mx-auto">
         <h1 class="text-2xl font-bold mb-4 text-pink-600">All Stories</h1>
-        <button id="clear-cache" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mb-4 flex items-center gap-2">
-          <i data-feather="trash-2"></i> Clear Cached Stories
+        <button id="clear-favorites" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mb-4 flex items-center gap-2">
+          <i data-feather="trash-2"></i> Clear Favorite Stories
         </button>
         <div id="stories-list" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
         <div id="loading-container" class="text-center"></div>
@@ -37,15 +37,18 @@ export default class HomePage {
 
     await this.#presenter.fetchStories();
 
-    const clearCacheButton = document.getElementById('clear-cache');
-    if (clearCacheButton) {
-      clearCacheButton.addEventListener('click', async () => {
+    const clearFavoritesButton = document.getElementById('clear-favorites');
+    if (clearFavoritesButton) {
+      clearFavoritesButton.addEventListener('click', async () => {
         try {
-          await clearStories();
-          this.showSuccess('Cached stories cleared successfully!');
+          const db = await initDb();
+          const transaction = db.transaction(['favorite-stories'], 'readwrite');
+          const store = transaction.objectStore('favorite-stories');
+          await store.clear();
+          this.showSuccess('Favorite stories cleared successfully!');
           this.displayStories([]);
         } catch (error) {
-          this.showError('Failed to clear cached stories: ' + error.message);
+          this.showError('Failed to clear favorite stories: ' + error.message);
         }
       });
     }
@@ -59,40 +62,40 @@ export default class HomePage {
     const storiesList = document.getElementById('stories-list');
     if (!stories || stories.length === 0) {
       try {
-        const cachedStories = await getStories();
-        if (cachedStories.length > 0) {
-          this.#renderStories(cachedStories);
-          this.showSuccess('Loaded stories from cache');
+        const favoriteStories = await getFavoriteStories();
+        if (favoriteStories.length > 0) {
+          this.#renderStories(favoriteStories);
+          this.showSuccess('Loaded favorite stories from cache');
           return;
         }
-        storiesList.innerHTML = '<p class="text-gray-600 col-span-full">No stories available.</p>';
+        storiesList.innerHTML = '<p class="text-gray-600 col-span-full">No stories available. Try adding some to favorites!</p>';
       } catch (error) {
         storiesList.innerHTML = '<p class="text-gray-600 col-span-full">No stories available.</p>';
-        console.error('Error loading cached stories:', error);
+        console.error('Error loading favorite stories:', error);
       }
       return;
-    }
-
-    try {
-      await saveStories(stories);
-    } catch (error) {
-      console.error('Error saving stories to IndexedDB:', error);
     }
 
     this.#renderStories(stories);
   }
 
-  #renderStories(stories) {
+  async #renderStories(stories) {
     const storiesList = document.getElementById('stories-list');
-    storiesList.innerHTML = stories.map(story => `
-      <article class="ml-20 bg-white p-4 rounded-lg shadow">
-        <img src="${story.photoUrl}" alt="Photo of story by ${story.name}" class="w-full h-48 object-cover rounded">
-        <h2 class="text-xl font-semibold mt-2 text-custom-dark-pink">${story.name}</h2>
-        <p class="text-gray-600">${story.description.length > 100 ? story.description.substring(0, 100) + '...' : story.description}</p>
-        <p class="text-gray-500 text-sm mt-1">${showFormattedDate(story.createdAt)}</p>
-        <div id="map-${story.id}" class="w-full h-32 mt-2"></div>
-      </article>
-    `).join('');
+    storiesList.innerHTML = await Promise.all(stories.map(async (story) => {
+      const isFavorite = await isStoryFavorite(story.id);
+      return `
+        <article class="ml-20 bg-white p-4 rounded-lg shadow relative">
+          <img src="${story.photoUrl}" alt="Photo of story by ${story.name}" class="w-full h-48 object-cover rounded">
+          <h2 class="text-xl font-semibold mt-2 text-custom-dark-pink">${story.name}</h2>
+          <p class="text-gray-600">${story.description.length > 100 ? story.description.substring(0, 100) + '...' : story.description}</p>
+          <p class="text-gray-500 text-sm mt-1">${showFormattedDate(story.createdAt)}</p>
+          <div id="map-${story.id}" class="w-full h-32 mt-2"></div>
+          <button id="favorite-btn-${story.id}" class="favorite-btn absolute top-4 right-4 text-2xl" data-story-id="${story.id}">
+            <i data-feather="${isFavorite ? 'heart' : 'heart'}"></i>
+          </button>
+        </article>
+      `;
+    })).then(htmlArray => htmlArray.join(''));
 
     stories.forEach(story => {
       const lat = parseFloat(story.lat) || -6.2088;
@@ -151,11 +154,29 @@ export default class HomePage {
 
       const marker = L.marker([lat, lon], { icon: defaultIcon }).addTo(map);
       marker.bindPopup(`<b>${story.name}</b><br>${story.description.substring(0, 50)}...`).openPopup();
+
+      // Event listener untuk tombol favorit
+      const favoriteBtn = document.getElementById(`favorite-btn-${story.id}`);
+      favoriteBtn.addEventListener('click', async () => {
+        const isCurrentlyFavorite = await isStoryFavorite(story.id);
+        if (isCurrentlyFavorite) {
+          await removeFavoriteStory(story.id);
+          favoriteBtn.innerHTML = '<i data-feather="heart"></i>';
+          this.showSuccess(`Removed ${story.name} from favorites`);
+        } else {
+          await saveFavoriteStory(story);
+          favoriteBtn.innerHTML = '<i data-feather="heart"></i>';
+          this.showSuccess(`Added ${story.name} to favorites`);
+        }
+        if (window.feather) window.feather.replace();
+      });
     });
+
+    if (window.feather) window.feather.replace();
   }
 
   prefetchSatelliteTiles(map, lat, lon, zoom = 13) {
-    if (!navigator.onLine) return; 
+    if (!navigator.onLine) return;
 
     const tempSatelliteLayer = L.tileLayer(`https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${CONFIG.MAPTILER_API_KEY}`, {
       attribution: '© <a href="https://www.maptiler.com/">MapTiler</a>',
