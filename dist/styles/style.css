@@ -1496,6 +1496,14 @@ body {
   color: #333;
 }
 
+.favorite-btn i[data-feather="heart"] {
+  color: #ccc;
+}
+.favorite-btn i[data-feather="heart"][data-is-favorite="true"] {
+  color: #e0245e;
+  fill: #e0245e;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
